@@ -1,0 +1,45 @@
+{
+  "expo": {
+    "name": "IZIM ID",
+    "slug": "izim-id",
+    "scheme": "izimid",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "assetBundlePatterns": ["**/*"],
+    "backgroundColor": "#0B1220",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "kz.izim.id",
+      "buildNumber": "1",
+      "entitlements": {
+        "com.apple.developer.nfc.readersession.formats": ["NDEF", "TAG"]
+      },
+      "infoPlist": {
+        "NFCReaderUsageDescription": "Нужен доступ к NFC, чтобы записать профиль на браслет"
+      }
+    },
+    "android": {
+      "package": "kz.izim.id",
+      "versionCode": 1,
+      "permissions": ["android.permission.NFC"]
+    },
+    "plugins": [
+      [
+        "react-native-nfc-manager",
+        {
+          "nfcPermission": "Приложение записывает ссылку на профиль в NFC-метку браслета",
+          "selectIdentifiers": [],
+          "systemCodes": []
+        }
+      ]
+    ],
+    "extra": {
+      "apiBaseUrl": "https://id.izim.kz",
+      "profileSetupPath": "/setup",
+      "eas": {
+        "projectId": "REPLACE_WITH_EAS_PROJECT_ID"
+      }
+    }
+  }
+}
