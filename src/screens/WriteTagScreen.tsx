@@ -10,7 +10,8 @@ import { enqueueSync } from '@/storage/claimQueue';
 import * as nfc from '@/nfc/nfcManager';
 import { NfcError } from '@/nfc/errors';
 import { PrimaryButton } from '@/components/PrimaryButton';
-import { colors, spacing } from '@/theme/colors';
+import { RouteDots } from '@/components/RouteDots';
+import { colors, layout, spacing, type } from '@/theme';
 
 type Nav = NativeStackNavigationProp<RootStackParamList, 'WriteTag'>;
 type Route = RouteProp<RootStackParamList, 'WriteTag'>;
@@ -19,25 +20,26 @@ type Stage = 'checking' | 'unsupported' | 'disabled' | 'idle' | 'writing' | 'suc
 
 const ANTENNA_HINT =
   Platform.OS === 'ios'
-    ? 'На iPhone антенна NFC находится у верхнего края задней панели.'
-    : 'На большинстве Android-телефонов антенна NFC находится в центре задней панели.';
+    ? 'Антенна NFC у iPhone — у верхнего края задней панели.'
+    : 'У большинства Android-телефонов антенна NFC — в центре задней панели.';
 
+/** Тексты по разделу 08 брендбука: ошибка не извиняется, а объясняет. */
 function errorMessage(error: NfcError): string {
   switch (error.code) {
     case 'TAG_LOCKED':
       return 'Эта метка защищена от перезаписи. Возьмите новую метку или обратитесь в поддержку.';
     case 'NOT_FORMATTABLE':
-      return 'Метка не отформатирована и не может быть подготовлена автоматически на этом устройстве. Попробуйте другую метку.';
+      return 'Метку не удалось подготовить на этом устройстве. Попробуйте другую метку.';
     case 'CAPACITY_TOO_SMALL':
       return 'Метка не поддерживается. Нужны метки NTAG213 и совместимые.';
     case 'TOO_EARLY_REMOVED':
     case 'EMPTY_AFTER_WRITE':
     case 'VERIFICATION_MISMATCH':
-      return 'Запись не завершена. Поднесите ещё раз и держите телефон у метки до сообщения об успехе.';
+      return 'Запись не завершена. Поднесите браслет ещё раз и держите телефон до сообщения об успехе.';
     case 'CANCELLED':
       return '';
     default:
-      return 'Не удалось записать метку. Попробуйте ещё раз.';
+      return 'Метка не записалась. Поднесите браслет ещё раз.';
   }
 }
 
@@ -95,7 +97,7 @@ export function WriteTagScreen() {
 
       const message = errorMessage(nfcError);
       setStage('idle');
-      if (message) Alert.alert('Не получилось', message);
+      if (message) Alert.alert('Метка не записана', message);
     }
   }
 
@@ -111,12 +113,15 @@ export function WriteTagScreen() {
   if (stage === 'unsupported') {
     return (
       <View style={styles.container}>
-        <Text style={styles.title}>У этого телефона нет NFC</Text>
-        <Text style={styles.body}>
-          Записать метку с этого устройства нельзя. Браслет с уже записанной меткой можно заказать
-          на izim.kz.
+        <Text style={type.overline}>Устройство</Text>
+        <Text style={type.h1}>У этого телефона нет NFC</Text>
+        <Text style={type.bodyMuted}>
+          Записать метку с него не получится. Браслет с уже записанной меткой можно заказать на
+          izim.kz.
         </Text>
-        <PrimaryButton title="Открыть izim.kz" onPress={() => Linking.openURL('https://izim.kz')} />
+        <View style={styles.actions}>
+          <PrimaryButton title="Открыть izim.kz" onPress={() => Linking.openURL('https://izim.kz')} />
+        </View>
       </View>
     );
   }
@@ -124,9 +129,12 @@ export function WriteTagScreen() {
   if (stage === 'disabled') {
     return (
       <View style={styles.container}>
-        <Text style={styles.title}>NFC выключен</Text>
-        <Text style={styles.body}>Включите NFC в настройках телефона, чтобы записать метку.</Text>
-        <PrimaryButton title="Включить NFC" onPress={onEnableNfcPress} />
+        <Text style={type.overline}>Устройство</Text>
+        <Text style={type.h1}>NFC выключен</Text>
+        <Text style={type.bodyMuted}>Включите NFC в настройках телефона, чтобы записать метку.</Text>
+        <View style={styles.actions}>
+          <PrimaryButton title="Включить NFC" onPress={onEnableNfcPress} />
+        </View>
       </View>
     );
   }
@@ -134,21 +142,19 @@ export function WriteTagScreen() {
   if (stage === 'success') {
     return (
       <View style={styles.container}>
-        <Text style={styles.title}>Метка записана</Text>
-        <Text style={styles.body}>
-          Ссылка проверена повторным чтением метки — всё совпадает. Профиль можно менять в любое
-          время, метка при этом останется прежней.
+        <RouteDots count={9} withStartDot />
+        <Text style={type.h1}>Метка записана</Text>
+        <Text style={type.bodyMuted}>
+          Ссылка проверена повторным чтением — она совпадает. Данные профиля можно менять когда
+          угодно, метка при этом остаётся прежней.
         </Text>
-        <View style={styles.buttonGroup}>
+        <View style={styles.actions}>
           <PrimaryButton
-            title="Заблокировать метку сейчас"
+            title="Заблокировать метку"
+            variant="secondary"
             onPress={() => navigation.replace('LockTag', { braceletId: bracelet.id })}
           />
-          <PrimaryButton
-            title="Позже"
-            variant="secondary"
-            onPress={() => navigation.navigate('MyBracelets')}
-          />
+          <PrimaryButton title="Готово" onPress={() => navigation.navigate('MyBracelets')} />
         </View>
       </View>
     );
@@ -156,15 +162,15 @@ export function WriteTagScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Поднесите браслет к телефону</Text>
-      <Text style={styles.body}>{ANTENNA_HINT}</Text>
+      <RouteDots count={9} />
+      <Text style={type.h1}>Поднесите браслет к телефону</Text>
+      <Text style={type.bodyMuted}>{ANTENNA_HINT}</Text>
       {Platform.OS === 'ios' && (
-        <Text style={styles.bodyMuted}>
-          После нажатия появится системное окно сканирования — держите метку у телефона до
-          сообщения об успехе.
+        <Text style={type.caption}>
+          Появится системное окно сканирования — держите браслет у телефона до сообщения об успехе.
         </Text>
       )}
-      <View style={styles.buttonGroup}>
+      <View style={styles.actions}>
         <PrimaryButton
           title={bracelet.status === 'draft' ? 'Записать' : 'Перезаписать'}
           onPress={() => performWrite(false)}
@@ -176,9 +182,12 @@ export function WriteTagScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background, padding: spacing.lg, justifyContent: 'center', gap: spacing.md },
-  title: { color: colors.text, fontSize: 24, fontWeight: '700', textAlign: 'center' },
-  body: { color: colors.textMuted, fontSize: 15, textAlign: 'center', lineHeight: 21 },
-  bodyMuted: { color: colors.textFaint, fontSize: 13, textAlign: 'center' },
-  buttonGroup: { gap: spacing.sm, marginTop: spacing.md },
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+    padding: layout.screenPadding,
+    justifyContent: 'center',
+    gap: spacing.md,
+  },
+  actions: { gap: spacing.sm, marginTop: spacing.lg },
 });

@@ -4,13 +4,13 @@ import { TagDiagnostics } from '@/types/tag';
 import * as nfc from '@/nfc/nfcManager';
 import { NfcError } from '@/nfc/errors';
 import { PrimaryButton } from '@/components/PrimaryButton';
-import { colors, radius, spacing } from '@/theme/colors';
+import { colors, layout, radius, spacing, type } from '@/theme';
 
 /**
- * Standalone diagnostics screen (plan section 4 "Прочитать метку"): reads
- * any tag and shows what's actually on it, independent of any bracelet
- * record on this device. Meant to cut support requests in half by letting
- * a customer see for themselves whether a tag is empty, foreign, or locked.
+ * Диагностика любой метки (план, раздел 4): показывает, что на ней записано,
+ * независимо от того, есть ли такой браслет в списке на этом телефоне.
+ * Задача — снять часть обращений в поддержку: клиент сам видит, пустая
+ * метка, чужая или заблокированная.
  */
 export function ReadTagScreen() {
   const [reading, setReading] = useState(false);
@@ -27,7 +27,7 @@ export function ReadTagScreen() {
     } catch (e) {
       const nfcError = e as NfcError;
       if (nfcError.code !== 'CANCELLED') {
-        setError('Не удалось прочитать метку. Поднесите телефон ближе и попробуйте ещё раз.');
+        setError('Метка не прочиталась. Поднесите её ближе к антенне и попробуйте ещё раз.');
       }
     } finally {
       setReading(false);
@@ -36,23 +36,26 @@ export function ReadTagScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Прочитать метку</Text>
-      <Text style={styles.body}>
-        Поднесите любую метку к телефону, чтобы посмотреть, что на ней записано.
+      <Text style={type.overline}>Диагностика</Text>
+      <Text style={type.h1}>Что записано на метке</Text>
+      <Text style={type.bodyMuted}>
+        Поднесите любую метку к телефону — покажем ссылку, тип чипа и свободное место.
       </Text>
 
-      <PrimaryButton title="Прочитать" onPress={onReadPress} loading={reading} />
+      <View style={styles.action}>
+        <PrimaryButton title="Прочитать" onPress={onReadPress} loading={reading} />
+      </View>
 
-      {error && <Text style={styles.error}>{error}</Text>}
+      {error && <Text style={[type.body, styles.error]}>{error}</Text>}
 
       {result && (
         <View style={styles.resultBox}>
-          <Row label="Ссылка" value={result.url ?? '— не найдена —'} />
+          <Row label="Ссылка" value={result.url ?? 'не найдена'} />
           <Row label="Тип метки" value={result.tagType ?? '—'} />
           <Row label="Технологии" value={result.techTypes.join(', ') || '—'} />
           <Row label="Ёмкость" value={result.maxSize != null ? `${result.maxSize} байт` : '—'} />
           <Row label="Свободно" value={result.freeSize != null ? `${result.freeSize} байт` : '—'} />
-          <Row label="Заблокирована" value={result.isLocked ? 'Да' : 'Нет'} />
+          <Row label="Заблокирована" value={result.isLocked ? 'да' : 'нет'} />
           <Row label="Идентификатор" value={result.rawId ?? '—'} />
         </View>
       )}
@@ -63,26 +66,26 @@ export function ReadTagScreen() {
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <View style={styles.row}>
-      <Text style={styles.rowLabel}>{label}</Text>
-      <Text style={styles.rowValue}>{value}</Text>
+      <Text style={type.overline}>{label}</Text>
+      <Text style={type.data}>{value}</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flexGrow: 1, backgroundColor: colors.background, padding: spacing.lg, gap: spacing.md },
-  title: { color: colors.text, fontSize: 22, fontWeight: '700' },
-  body: { color: colors.textMuted, fontSize: 14, lineHeight: 20 },
-  error: { color: colors.danger, fontSize: 14 },
+  container: {
+    flexGrow: 1,
+    backgroundColor: colors.background,
+    padding: layout.screenPadding,
+    gap: spacing.md,
+  },
+  action: { marginTop: spacing.sm },
+  error: { color: colors.warning },
   resultBox: {
     backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
+    borderRadius: radius.lg,
     padding: spacing.md,
-    gap: spacing.sm,
+    gap: spacing.md,
   },
-  row: { gap: 2 },
-  rowLabel: { color: colors.textFaint, fontSize: 12, textTransform: 'uppercase' },
-  rowValue: { color: colors.text, fontSize: 15 },
+  row: { gap: spacing.xs },
 });

@@ -2,7 +2,8 @@ import React from 'react';
 import { Linking, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import * as nfc from '@/nfc/nfcManager';
 import { PrimaryButton } from '@/components/PrimaryButton';
-import { colors, radius, spacing } from '@/theme/colors';
+import { RouteDots } from '@/components/RouteDots';
+import { colors, layout, radius, spacing, type } from '@/theme';
 
 interface Item {
   question: string;
@@ -11,68 +12,82 @@ interface Item {
 
 const ITEMS: Item[] = [
   {
-    question: 'Где находится антенна NFC?',
+    question: 'Где находится антенна NFC',
     answer:
       Platform.OS === 'ios'
-        ? 'На iPhone — у верхнего края задней панели, рядом с камерой. Приложите именно эту часть телефона к браслету.'
-        : 'На большинстве Android-телефонов — в центре задней панели. На некоторых моделях — ближе к верхнему краю. Если запись не начинается, медленно подвигайте телефон по браслету.',
+        ? 'У iPhone — у верхнего края задней панели, рядом с камерой. Прикладывайте к браслету именно эту часть телефона.'
+        : 'У большинства Android-телефонов — в центре задней панели, у части моделей ближе к верхнему краю. Если запись не начинается, медленно проведите телефоном по браслету.',
   },
   {
     question: 'Метка не читается совсем',
     answer:
-      'Снимите чехол, если он металлический или содержит магниты. Держите телефон и метку неподвижно 2–3 секунды. Если не помогает — попробуйте другую метку через экран «Прочитать метку».',
+      'Снимите чехол, если он металлический или с магнитами. Держите телефон и браслет неподвижно две-три секунды. Если не помогает, проверьте метку на экране «Прочитать метку».',
   },
   {
     question: 'Как включить NFC на Android',
-    answer: 'Настройки → Подключённые устройства → NFC. Или нажмите кнопку ниже.',
+    answer: 'Настройки → Подключённые устройства → NFC. Или откройте их кнопкой ниже.',
   },
   {
-    question: 'Запись прошла, но браслет не открывается по ссылке у других людей',
+    question: 'Метка записана, но страница не открывается у других',
     answer:
-      'Проверьте на экране «Прочитать метку», что записанная ссылка совпадает с ожидаемой. Если ссылка верна, а страница не открывается — это вопрос к сайту id.izim.kz, а не к самой метке.',
+      'Откройте «Прочитать метку» и сверьте ссылку. Если ссылка верная, а страница не открывается — дело в сайте id.izim.kz, а не в метке.',
   },
   {
-    question: 'Заблокировал метку по ошибке',
+    question: 'Метка заблокирована по ошибке',
     answer:
-      'Данные профиля можно менять и после блокировки метки — меняются они на сервере, а не на самой метке. Если нужна новая физическая метка — обратитесь в поддержку по гарантии.',
+      'Данные профиля меняются и после блокировки — они хранятся на сервере, а не на метке. Если нужна новая физическая метка, обратитесь в поддержку по гарантии.',
+  },
+  {
+    question: 'Фото браслета видно посторонним?',
+    answer:
+      'Нет. Фото хранится только на вашем телефоне и нужно, чтобы различать браслеты в списке. Тот, кто приложит браслет, увидит страницу профиля без фотографии.',
   },
 ];
 
 export function HelpScreen() {
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Помощь</Text>
+      <RouteDots count={9} withStartDot />
+      <Text style={type.h1}>Помощь</Text>
+
       {ITEMS.map((item) => (
         <View key={item.question} style={styles.item}>
-          <Text style={styles.question}>{item.question}</Text>
-          <Text style={styles.answer}>{item.answer}</Text>
+          <Text style={[type.body, styles.question]}>{item.question}</Text>
+          <Text style={type.bodyMuted}>{item.answer}</Text>
         </View>
       ))}
 
-      {Platform.OS === 'android' && (
-        <PrimaryButton title="Открыть настройки NFC" onPress={() => nfc.openNfcSettings()} />
-      )}
-
-      <PrimaryButton
-        title="Написать в поддержку izim.kz"
-        variant="secondary"
-        onPress={() => Linking.openURL('https://izim.kz')}
-      />
+      <View style={styles.actions}>
+        {Platform.OS === 'android' && (
+          <PrimaryButton
+            title="Открыть настройки NFC"
+            variant="secondary"
+            onPress={() => nfc.openNfcSettings()}
+          />
+        )}
+        <PrimaryButton
+          title="Написать в поддержку"
+          variant="secondary"
+          onPress={() => Linking.openURL('https://izim.kz')}
+        />
+      </View>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flexGrow: 1, backgroundColor: colors.background, padding: spacing.lg, gap: spacing.md },
-  title: { color: colors.text, fontSize: 22, fontWeight: '700' },
+  container: {
+    flexGrow: 1,
+    backgroundColor: colors.background,
+    padding: layout.screenPadding,
+    gap: spacing.md,
+  },
   item: {
     backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
+    borderRadius: radius.lg,
     padding: spacing.md,
-    gap: 6,
+    gap: spacing.xs,
   },
-  question: { color: colors.text, fontSize: 15, fontWeight: '700' },
-  answer: { color: colors.textMuted, fontSize: 14, lineHeight: 20 },
+  question: { color: colors.text },
+  actions: { gap: spacing.sm, marginTop: spacing.sm },
 });

@@ -1,6 +1,7 @@
 import * as SecureStore from 'expo-secure-store';
 import * as Crypto from 'expo-crypto';
 import { Bracelet } from '@/types/bracelet';
+import { deletePhoto, savePhoto } from './photoStore';
 
 /**
  * Bracelets (and their secret editUrl) live only in the device Keychain/Keystore
@@ -75,6 +76,31 @@ export async function updateBraceletStatus(
 export async function removeBracelet(id: string): Promise<void> {
   const all = await readAll();
   await writeAll(all.filter((b) => b.id !== id));
+  // Файл фото лежит вне этого списка, поэтому удаляем его отдельно —
+  // иначе он остался бы в песочнице навсегда.
+  await deletePhoto(id);
+}
+
+/** Копирует выбранное фото в песочницу и запоминает путь в записи браслета. */
+export async function setBraceletPhoto(id: string, sourceUri: string): Promise<Bracelet | undefined> {
+  const stored = await savePhoto(id, sourceUri);
+  const all = await readAll();
+  const index = all.findIndex((b) => b.id === id);
+  if (index < 0) return undefined;
+  all[index] = { ...all[index], photoUri: stored, updatedAt: Date.now() };
+  await writeAll(all);
+  return all[index];
+}
+
+export async function clearBraceletPhoto(id: string): Promise<Bracelet | undefined> {
+  await deletePhoto(id);
+  const all = await readAll();
+  const index = all.findIndex((b) => b.id === id);
+  if (index < 0) return undefined;
+  const { photoUri: _removed, ...rest } = all[index];
+  all[index] = { ...rest, updatedAt: Date.now() };
+  await writeAll(all);
+  return all[index];
 }
 
 export async function findBraceletByCode(code: string): Promise<Bracelet | undefined> {

@@ -8,7 +8,7 @@ import type { RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '@/navigation/types';
 import { BraceletRole } from '@/types/bracelet';
 import { getBracelet, upsertBracelet } from '@/storage/braceletsStore';
-import { colors } from '@/theme/colors';
+import { colors } from '@/theme';
 
 type Nav = NativeStackNavigationProp<RootStackParamList, 'ProfileWebView'>;
 type Route = RouteProp<RootStackParamList, 'ProfileWebView'>;
@@ -98,7 +98,7 @@ export function ProfileWebViewScreen() {
     <View style={styles.container}>
       {loading && (
         <View style={styles.loadingOverlay}>
-          <ActivityIndicator size="large" color={colors.primary} />
+          <ActivityIndicator size="large" color={colors.accentGraphic} />
         </View>
       )}
       <WebView

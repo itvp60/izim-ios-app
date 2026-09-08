@@ -21,6 +21,11 @@ export interface Bracelet {
   editUrl: string;
   role?: BraceletRole;
   name?: string;
+  /**
+   * Путь к фото в песочнице приложения (см. storage/photoStore).
+   * Только локально: на публичную страницу профиля фото не передаётся.
+   */
+  photoUri?: string;
   status: BraceletStatus;
   createdAt: number;
   updatedAt: number;
