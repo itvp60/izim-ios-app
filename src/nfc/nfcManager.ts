@@ -104,8 +104,19 @@ export async function writeUrlToTag(
 
     await NfcManager.ndefHandler.writeNdefMessage(bytes);
 
-    // Mandatory re-read + compare (plan section 4, step 4 "Проверка").
-    const verifiedTag = await NfcManager.getTag();
+    /*
+     * Обязательная сверка (план, разделы 4 и 5): перечитываем метку и
+     * сравниваем ссылку.
+     *
+     * Читать здесь нужно именно ndefHandler.getNdefMessage(), а не getTag().
+     * getTag() отдаёт то, что библиотека запомнила в момент обнаружения метки:
+     * на Android он под капотом зовёт ndef.getCachedNdefMessage(), к самой
+     * метке повторно не обращаясь. После записи это дало бы прежнее
+     * содержимое — на чистой метке пусто, на перезаписанной старую ссылку, —
+     * и проверка падала бы как раз тогда, когда запись прошла успешно.
+     * getNdefMessage() выполняет настоящее чтение с метки.
+     */
+    const verifiedTag = await NfcManager.ndefHandler.getNdefMessage();
     const writtenUrl = decodeUrl(verifiedTag);
 
     if (!writtenUrl) {
