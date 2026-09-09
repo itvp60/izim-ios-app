@@ -10,16 +10,17 @@ import { enqueueSync } from '@/storage/claimQueue';
 import * as nfc from '@/nfc/nfcManager';
 import { NfcError } from '@/nfc/errors';
 import { PrimaryButton } from '@/components/PrimaryButton';
-import { colors, radius, spacing } from '@/theme/colors';
+import { brand, colors, layout, radius, spacing, type } from '@/theme';
 
 type Nav = NativeStackNavigationProp<RootStackParamList, 'LockTag'>;
 type Route = RouteProp<RootStackParamList, 'LockTag'>;
 
 /**
- * Locking is a separate, deliberately slower step (plan section 4/5): it is
- * irreversible on both platforms, while profile data on the server can
- * always change afterward. The confirmation switch exists so a tap can't
- * lock a tag by accident.
+ * Блокировка — отдельный, намеренно медленный шаг (план, разделы 4 и 5):
+ * она необратима на обеих платформах, тогда как данные профиля на сервере
+ * меняются всегда. Переключатель не даёт заблокировать метку случайным
+ * касанием. Предупреждение окрашено в Clay — брендбук отводит этот цвет
+ * предупреждениям и ограничивает его 5% макета.
  */
 export function LockTagScreen() {
   const navigation = useNavigation<Nav>();
@@ -47,10 +48,10 @@ export function LockTagScreen() {
       const nfcError = error as NfcError;
       if (nfcError.code === 'CANCELLED') return;
       Alert.alert(
-        'Не удалось заблокировать',
+        'Метка не заблокирована',
         nfcError.code === 'TAG_LOCKED'
-          ? 'Метка уже заблокирована.'
-          : 'Поднесите метку ещё раз и держите телефон рядом до завершения.'
+          ? 'Эта метка уже заблокирована.'
+          : 'Поднесите браслет ещё раз и держите телефон до завершения.'
       );
     } finally {
       setLocking(false);
@@ -61,49 +62,71 @@ export function LockTagScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Заблокировать метку</Text>
+      <Text style={type.overline}>Необратимое действие</Text>
+      <Text style={type.h1}>Заблокировать метку</Text>
+
       <View style={styles.warningBox}>
-        <Text style={styles.warningText}>
-          После блокировки записать метку заново будет невозможно — никогда, даже в поддержке.
+        <Text style={[type.body, styles.warningText]}>
+          После блокировки записать эту метку заново нельзя — никогда, в том числе в поддержке.
         </Text>
       </View>
-      <Text style={styles.body}>
-        Данные профиля при этом не блокируются — их можно менять на сайте в любое время. Блокируется
-        только ссылка, записанная на физическую метку.
+
+      <Text style={type.bodyMuted}>
+        Данные профиля блокировка не затрагивает: они меняются на сайте в любое время. Закрывается
+        только сама ссылка на физической метке.
       </Text>
 
       <View style={styles.confirmRow}>
-        <Switch value={confirmed} onValueChange={setConfirmed} />
-        <Text style={styles.confirmText}>Я понимаю, что это необратимо</Text>
+        <Switch
+          value={confirmed}
+          onValueChange={setConfirmed}
+          trackColor={{ false: colors.surfaceRaised, true: colors.warning }}
+          thumbColor={brand.paper}
+          ios_backgroundColor={colors.surfaceRaised}
+        />
+        <Text style={[type.body, styles.confirmText]}>Я понимаю, что это необратимо</Text>
       </View>
 
-      <View style={styles.buttonGroup}>
+      <View style={styles.actions}>
         <PrimaryButton
           title="Заблокировать метку"
-          variant="danger"
+          variant="warning"
           disabled={!confirmed}
           loading={locking}
           onPress={onLockPress}
         />
-        <PrimaryButton title="Не сейчас" variant="secondary" onPress={() => navigation.navigate('MyBracelets')} />
+        <PrimaryButton
+          title="Не сейчас"
+          variant="secondary"
+          onPress={() => navigation.navigate('MyBracelets')}
+        />
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background, padding: spacing.lg, justifyContent: 'center', gap: spacing.md },
-  title: { color: colors.text, fontSize: 22, fontWeight: '700', textAlign: 'center' },
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+    padding: layout.screenPadding,
+    justifyContent: 'center',
+    gap: spacing.md,
+  },
   warningBox: {
-    backgroundColor: '#3A1A1A',
-    borderColor: colors.danger,
-    borderWidth: 1,
-    borderRadius: radius.md,
+    borderLeftWidth: 3,
+    borderLeftColor: colors.warning,
+    borderRadius: radius.sm,
+    backgroundColor: colors.surface,
     padding: spacing.md,
   },
-  warningText: { color: '#FCA5A5', fontSize: 14, lineHeight: 20, fontWeight: '600' },
-  body: { color: colors.textMuted, fontSize: 14, lineHeight: 20 },
-  confirmRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  confirmText: { color: colors.text, fontSize: 14, flexShrink: 1 },
-  buttonGroup: { gap: spacing.sm, marginTop: spacing.md },
+  warningText: { color: colors.warning },
+  confirmRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    marginTop: spacing.sm,
+  },
+  confirmText: { flexShrink: 1 },
+  actions: { gap: spacing.sm, marginTop: spacing.md },
 });

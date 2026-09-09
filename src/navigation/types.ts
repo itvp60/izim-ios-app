@@ -4,6 +4,7 @@ export type ProfileWebViewParams =
 
 export type RootStackParamList = {
   MyBracelets: undefined;
+  BraceletDetail: { braceletId: string };
   ProfileWebView: ProfileWebViewParams;
   WriteTag: { braceletId: string };
   LockTag: { braceletId: string };

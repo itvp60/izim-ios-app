@@ -1,24 +1,29 @@
 import React from 'react';
-import { Pressable, Text } from 'react-native';
+import { Pressable, StyleSheet, Text } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from './types';
 import { MyBraceletsScreen } from '@/screens/MyBraceletsScreen';
+import { BraceletDetailScreen } from '@/screens/BraceletDetailScreen';
 import { ProfileWebViewScreen } from '@/screens/ProfileWebViewScreen';
 import { WriteTagScreen } from '@/screens/WriteTagScreen';
 import { LockTagScreen } from '@/screens/LockTagScreen';
 import { ReadTagScreen } from '@/screens/ReadTagScreen';
 import { HelpScreen } from '@/screens/HelpScreen';
-import { colors } from '@/theme/colors';
+import { colors, fontFamily } from '@/theme';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
+/**
+ * Ссылки в шапке набраны цветом Paper, а не Signal: синий на тёмном фоне
+ * даёт 2.6:1 и по брендбуку не используется для текста ни при каком кегле.
+ */
 function HeaderLink({ label, to }: { label: string; to: 'ReadTag' | 'Help' }) {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   return (
-    <Pressable onPress={() => navigation.navigate(to)} hitSlop={8}>
-      <Text style={{ color: colors.primary, fontSize: 15 }}>{label}</Text>
+    <Pressable onPress={() => navigation.navigate(to)} hitSlop={12} accessibilityRole="button">
+      <Text style={styles.headerLink}>{label}</Text>
     </Pressable>
   );
 }
@@ -27,9 +32,14 @@ export function RootNavigator() {
   return (
     <Stack.Navigator
       screenOptions={{
-        headerStyle: { backgroundColor: colors.surface },
-        headerTitleStyle: { color: colors.text },
-        headerTintColor: colors.primary,
+        headerStyle: { backgroundColor: colors.background },
+        headerShadowVisible: false,
+        headerTitleStyle: {
+          color: colors.text,
+          fontFamily: fontFamily.displayMedium,
+          fontSize: 17,
+        },
+        headerTintColor: colors.text,
         contentStyle: { backgroundColor: colors.background },
       }}
     >
@@ -38,10 +48,11 @@ export function RootNavigator() {
         component={MyBraceletsScreen}
         options={{
           title: 'Мои браслеты',
-          headerRight: () => <HeaderLink label="Помощь" to="Help" />,
           headerLeft: () => <HeaderLink label="Метка" to="ReadTag" />,
+          headerRight: () => <HeaderLink label="Помощь" to="Help" />,
         }}
       />
+      <Stack.Screen name="BraceletDetail" component={BraceletDetailScreen} options={{ title: '' }} />
       <Stack.Screen name="ProfileWebView" component={ProfileWebViewScreen} options={{ title: 'Профиль' }} />
       <Stack.Screen name="WriteTag" component={WriteTagScreen} options={{ title: 'Запись метки' }} />
       <Stack.Screen name="LockTag" component={LockTagScreen} options={{ title: 'Блокировка' }} />
@@ -50,3 +61,11 @@ export function RootNavigator() {
     </Stack.Navigator>
   );
 }
+
+const styles = StyleSheet.create({
+  headerLink: {
+    color: colors.text,
+    fontFamily: fontFamily.bodyMedium,
+    fontSize: 15,
+  },
+});
