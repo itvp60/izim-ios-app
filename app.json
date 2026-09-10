@@ -21,7 +21,8 @@
         ]
       },
       "infoPlist": {
-        "NFCReaderUsageDescription": "Нужен доступ к NFC, чтобы записать профиль на браслет"
+        "NFCReaderUsageDescription": "Нужен доступ к NFC, чтобы записать профиль на браслет",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
