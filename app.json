@@ -54,7 +54,8 @@
           "cameraPermission": "Нужен доступ к камере, чтобы снять фото для карточки браслета. Оно останется на телефоне.",
           "microphonePermission": false
         }
-      ]
+      ],
+      "./plugins/withIosDeploymentTarget"
     ],
     "extra": {
       "apiBaseUrl": "https://id.izim.kz",
