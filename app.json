@@ -13,10 +13,9 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "kz.izim.id",
-      "buildNumber": "1",
+      "buildNumber": "2",
       "entitlements": {
         "com.apple.developer.nfc.readersession.formats": [
-          "NDEF",
           "TAG"
         ]
       },
@@ -44,7 +43,8 @@
         {
           "nfcPermission": "Приложение записывает ссылку на профиль в NFC-метку браслета",
           "selectIdentifiers": [],
-          "systemCodes": []
+          "systemCodes": [],
+          "includeNdefEntitlement": false
         }
       ],
       "expo-font",
