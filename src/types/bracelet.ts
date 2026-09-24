@@ -26,6 +26,11 @@ export interface Bracelet {
    * Только локально: на публичную страницу профиля фото не передаётся.
    */
   photoUri?: string;
+  /**
+   * Когда включён режим поиска (ISO), null — выключен. Источник правды —
+   * сервер; здесь копия, чтобы список показывал «Ищем» без сети.
+   */
+  lostSince?: string | null;
   status: BraceletStatus;
   createdAt: number;
   updatedAt: number;
@@ -36,3 +41,10 @@ export const ROLE_LABELS: Record<BraceletRole, string> = {
   adult_sos: 'Взрослый SOS',
   adult_card: 'Взрослый визитка',
 };
+
+/** Режим поиска есть только у экстренных профилей — у визитки «ищут человека» смысла нет. */
+export function supportsLostMode(role: BraceletRole | undefined): boolean {
+  // Роль неизвестна у браслетов, заведённых до того, как сайт начал её
+  // сообщать. Показываем блок: сервер сам откажет визитке понятным текстом.
+  return role !== 'adult_card';
+}

@@ -20,7 +20,8 @@ export function MyBraceletsScreen() {
 
   const reload = useCallback(() => {
     getBracelets()
-      .then(setBracelets)
+      // Браслеты в режиме поиска — наверх: в такой момент их ищут глазами первыми.
+      .then((all) => setBracelets([...all].sort((a, b) => Number(!!b.lostSince) - Number(!!a.lostSince))))
       .finally(() => setLoaded(true));
   }, []);
 
@@ -60,7 +61,11 @@ export function MyBraceletsScreen() {
         }
         renderItem={({ item }) => (
           <Pressable
-            style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
+            style={({ pressed }) => [
+              styles.card,
+              !!item.lostSince && styles.cardLost,
+              pressed && styles.cardPressed,
+            ]}
             onPress={() => navigation.navigate('BraceletDetail', { braceletId: item.id })}
             accessibilityRole="button"
           >
@@ -70,7 +75,14 @@ export function MyBraceletsScreen() {
                 {item.name || 'Без имени'}
               </Text>
               {item.role && <Text style={type.caption}>{ROLE_LABELS[item.role]}</Text>}
-              <StatusBadge status={item.status} />
+              {item.lostSince ? (
+                <View style={styles.lostBadge}>
+                  <View style={styles.lostDot} />
+                  <Text style={[type.caption, styles.lostText]}>Режим поиска включён</Text>
+                </View>
+              ) : (
+                <StatusBadge status={item.status} />
+              )}
             </View>
           </Pressable>
         )}
@@ -98,6 +110,10 @@ const styles = StyleSheet.create({
     padding: spacing.md,
   },
   cardPressed: { backgroundColor: colors.surfaceRaised },
+  cardLost: { borderWidth: 2, borderColor: colors.warning },
+  lostBadge: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs + 2 },
+  lostDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.warning },
+  lostText: { color: colors.warning, letterSpacing: 0.13 },
   cardBody: { flex: 1, gap: spacing.xs },
   footer: {
     padding: layout.screenPadding,

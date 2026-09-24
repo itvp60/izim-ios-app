@@ -4,7 +4,7 @@ import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/nativ
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '@/navigation/types';
-import { Bracelet, ROLE_LABELS } from '@/types/bracelet';
+import { Bracelet, ROLE_LABELS, supportsLostMode } from '@/types/bracelet';
 import {
   clearBraceletPhoto,
   getBracelet,
@@ -15,6 +15,7 @@ import { PhotoPermissionError, PhotoSource, pickPhoto } from '@/media/pickPhoto'
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { StatusBadge } from '@/components/StatusBadge';
 import { BraceletAvatar } from '@/components/BraceletAvatar';
+import { LostModeCard } from '@/components/LostModeCard';
 import { colors, layout, radius, spacing, type } from '@/theme';
 
 type Nav = NativeStackNavigationProp<RootStackParamList, 'BraceletDetail'>;
@@ -108,6 +109,10 @@ export function BraceletDetailScreen() {
         {bracelet.role && <Text style={type.bodyMuted}>{ROLE_LABELS[bracelet.role]}</Text>}
         <StatusBadge status={bracelet.status} />
       </View>
+
+      {supportsLostMode(bracelet.role) && (
+        <LostModeCard bracelet={bracelet} onUpdated={setBracelet} />
+      )}
 
       <View style={styles.photoActions}>
         <Pressable onPress={onPhotoPress} disabled={busy} hitSlop={8} accessibilityRole="button">

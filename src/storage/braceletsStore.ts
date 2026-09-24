@@ -103,6 +103,19 @@ export async function clearBraceletPhoto(id: string): Promise<Bracelet | undefin
   return all[index];
 }
 
+export async function setBraceletLostSince(
+  id: string,
+  lostSince: string | null
+): Promise<Bracelet | undefined> {
+  const all = await readAll();
+  const index = all.findIndex((b) => b.id === id);
+  if (index < 0) return undefined;
+  if (all[index].lostSince === lostSince) return all[index];
+  all[index] = { ...all[index], lostSince, updatedAt: Date.now() };
+  await writeAll(all);
+  return all[index];
+}
+
 export async function findBraceletByCode(code: string): Promise<Bracelet | undefined> {
   const all = await readAll();
   return all.find((b) => b.code === code);
