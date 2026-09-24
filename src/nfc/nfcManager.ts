@@ -1,5 +1,5 @@
 import { Platform } from 'react-native';
-import NfcManager, { Ndef, NfcTech, TagEvent } from 'react-native-nfc-manager';
+import NfcManager, { Ndef, NdefStatus, NfcTech, TagEvent } from 'react-native-nfc-manager';
 import { TagDiagnostics } from '@/types/tag';
 import { NfcError, mapNfcError } from './errors';
 
@@ -174,7 +174,31 @@ export async function lockTag(): Promise<void> {
     await NfcManager.requestTechnology(NfcTech.Ndef, {
       alertMessage: 'Поднесите телефон к браслету для блокировки',
     });
-    await NfcManager.ndefHandler.makeReadOnly();
+    const result: unknown = await NfcManager.ndefHandler.makeReadOnly();
+
+    /*
+     * Сверка, как и после записи: «Заблокирована» говорим, только если метка
+     * действительно стала только для чтения. Родителю ложное «защищено»
+     * хуже честного «не получилось».
+     *
+     * Android: ndef.makeReadOnly() отвечает true/false, и библиотека отдаёт
+     * этот ответ наружу. Раньше он выбрасывался, и отказ метки выглядел как
+     * успех. Перечитать статус здесь нельзя: getNdefStatus() на Android
+     * берёт isWritable из снимка, сделанного при обнаружении метки, — та же
+     * ловушка с кэшем, что была у проверки записи.
+     *
+     * iOS: writeLock либо падает с ошибкой, либо проходит. Сверху спрашиваем
+     * у метки статус: queryNDEFStatus на iOS — настоящее обращение к метке.
+     */
+    if (Platform.OS === 'android' && result === false) {
+      throw new NfcError('LOCK_FAILED', 'makeReadOnly returned false');
+    }
+    if (Platform.OS === 'ios') {
+      const { status } = await NfcManager.ndefHandler.getNdefStatus();
+      if (status !== NdefStatus.ReadOnly) {
+        throw new NfcError('LOCK_FAILED', `status after writeLock: ${status}`);
+      }
+    }
   } catch (error) {
     throw mapNfcError(error);
   } finally {
